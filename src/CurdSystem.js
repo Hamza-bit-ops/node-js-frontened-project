@@ -1,29 +1,34 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Curd.css";
+import axios from "axios";
+const apiUrl = "http://localhost:3001"; // Update with your server's URL
 
 function CrudSystem() {
   const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
- 
   const [productCategory, setProductCategory] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [productCount, setProductCount] = useState("");
   const [productTotal, setProductTotal] = useState("");
+  const [myProducts,setMyProducts] = useState([]);
 
   useEffect(() => {
+    axios.get(apiUrl).then((response) => {
+      
+      
+      const myData = response.data;
+      console.log("+++++++++++>",myData);
+      setMyProducts(myData);
+
+
+      
+    });
     // Load data from localStorage on component mount
-    const storedProducts = JSON.parse(localStorage.getItem("product")) || [];
-    setProducts(storedProducts);
-    
+    // const storedProducts = JSON.parse(localStorage.getItem("product"));
+    // setProducts(storedProducts || []);
   }, []);
-
-
-  useEffect(() => {
-    // Update localStorage whenever products state changes
-    localStorage.setItem("product", JSON.stringify(products));
-  }, [products]);
 
   const getTotal = () => {
     let result = "";
@@ -35,29 +40,43 @@ function CrudSystem() {
       }
     }
     setProductTotal(result);
-    // document.getElementById("productsTotal").value = result
-  };
-  const product = {
-    name: productName.toLowerCase(),
-    price: productPrice,
-    category: productCategory.toLowerCase(),
-    description: productDescription,
-    count: productCount,
   };
 
   const addProduct = () => {
-    
-    setProducts([...products, product]);
+    const newProduct = {
+      name: productName.toLowerCase(),
+      price: productPrice,
+      category: productCategory.toLowerCase(),
+      description: productDescription,
+      count: productCount,
+    };
+
+    setProducts([...products, newProduct]);
+    // localStorage.setItem("product", JSON.stringify([...products, newProduct]));
     getTotal();
-    
-    // clearData();
+    clearData();
+    console.log(apiUrl, newProduct);
+    axios
+      .post(apiUrl, newProduct)
+      .then((response) => {
+        console.log("Product added successfully:", response.product);
+        // Update state and clear data
+        setProducts([...products, newProduct]);
+       
+        getTotal();
+        clearData();
+      })
+      .catch((error) => {
+        console.error(error.response.data.message);
+      });
   };
 
-  const deleteProduct = (index) => {
-    const updatedProducts = [...products];
-    updatedProducts.splice(index, 1);
-    setProducts(updatedProducts);
-  };
+  // const deleteProduct = (index) => {
+  //   const updatedProducts = [...products];
+  //   updatedProducts.splice(index, 1);
+  //   setProducts(updatedProducts);
+  //   localStorage.setItem("product", JSON.stringify(updatedProducts));
+  // };
 
   const clearData = () => {
     setProductName("");
@@ -67,6 +86,21 @@ function CrudSystem() {
     setProductCount("");
   };
 
+  // const incrementCount = (index) => {
+  //   const updatedProducts = [...products];
+  //   updatedProducts[index].count++;
+  //   setProducts(updatedProducts);
+  //   localStorage.setItem("product", JSON.stringify(updatedProducts));
+  // };
+
+  // const decrementCount = (index) => {
+  //   const updatedProducts = [...products];
+  //   if (updatedProducts[index].count > 0) {
+  //     updatedProducts[index].count--;
+  //     setProducts(updatedProducts);
+  //     localStorage.setItem("product", JSON.stringify(updatedProducts));
+  //   }
+  // };
 
   return (
     <>
@@ -90,6 +124,7 @@ function CrudSystem() {
             className="form-control mb-4"
             id="productName"
             placeholder="Product Name"
+            value={productName}
           />
           <div className="priceCount">
             <input
@@ -100,6 +135,7 @@ function CrudSystem() {
               className="form-control mb-4 w-25"
               id="productPrice"
               placeholder="Product Price"
+              value={productPrice}
             />
             <input
               onChange={(e) => {
@@ -109,6 +145,7 @@ function CrudSystem() {
               className="form-control mb-4 w-25"
               id="productCount"
               placeholder="Product Count"
+              value={productCount}
             />
             <button
               id="label"
@@ -117,7 +154,6 @@ function CrudSystem() {
             >
               Total
             </button>
-           
             <input
               type="text"
               className="form-control mb-4 w-25"
@@ -136,6 +172,7 @@ function CrudSystem() {
             className="form-control mb-4"
             id="productCategory"
             placeholder="Product Category"
+            value={productCategory}
           />
 
           <input
@@ -146,11 +183,11 @@ function CrudSystem() {
             className="form-control mb-4"
             id="productDescription"
             placeholder="Product Description"
+            value={productDescription}
           />
 
           <button
             id="addProducts"
-            // onclick="addProduct()"
             className="btn btn-info mt-2"
             onClick={addProduct}
           >
@@ -159,9 +196,7 @@ function CrudSystem() {
           <button
             id="btnDeleteAll"
             className="btn btn-danger mt-2"
-            // onClick={deleteProduct}
-
-            
+            onClick={() => setProducts([])}
           >
             Delete All
           </button>
@@ -187,7 +222,7 @@ function CrudSystem() {
               type="text"
               className="w-50 form-control mx-auto"
               id="search"
-              placeholder="Search Prodduct...."
+              placeholder="Search Product...."
             />
           </div>
 
@@ -205,19 +240,40 @@ function CrudSystem() {
               </tr>
             </thead>
             <tbody>
-              {products.map((obj, index) => (
+              {myProducts.map((product, index) => (
                 <tr key={index}>
-                  <td className="mt-1">{obj.index}</td>
-                  <td>{obj.name}</td>
-                  <td>{obj.price}</td>
-                  <td>{obj.category}</td>
-                  <td>{obj.description}</td>
-                  <td><button onClick="deleteRow(${i})" class="btn btn-danger">Delete</button></td>
-                  <td><button onclick="editRow(${i})" class="btn btn-warning">Edit</button></td>
+                  <td className="mt-1">{index}</td>
+                  <td>{product.name}</td>
+                  <td>{product.price}</td>
+                  <td>{product.category}</td>
+                  <td>{product.description}</td>
                   <td>
-                  {obj.count}
+                    <button
+                      // onClick={() => deleteProduct(index)}
+                      className="btn btn-danger"
+                    >
+                      Delete
+                    </button>
                   </td>
-                 
+                  <td>
+                    <button className="btn btn-warning">Edit</button>
+                  </td>
+                  <td>
+                    <button
+                      className="rounded-circle"
+                      // onClick={() => decrementCount(index)}
+                    >
+                      {" "}
+                      -{" "}
+                    </button>
+                    {product.count}
+                    <button
+                      className="rounded-circle"
+                      // onClick={() => incrementCount(index)}
+                    >
+                      +
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
