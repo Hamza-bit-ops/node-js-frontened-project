@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Form, InputGroup } from "react-bootstrap";
 import "./Curd.css";
 import axios from "axios";
 const apiUrl = "http://localhost:3001"; // Update with your server's URL
 
 function CrudSystem() {
-  const [incrementCount, setIncrimentCount] = useState({});
+  const [search, setSearch] = useState("");
   const [idForEditing, setIdForEditing] = useState("");
   const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState("");
@@ -19,11 +20,9 @@ function CrudSystem() {
   function getData() {
     axios.get(apiUrl).then((response) => {
       const myData = response.data;
-      // console.log(myData);
       setMyProducts(myData);
     });
   }
-
   const getProductById = async (id) => {
     await axios.get(apiUrl + "/" + id).then((response) => {
       const editingId = response.data._id;
@@ -47,7 +46,7 @@ function CrudSystem() {
       count: Number(count),
     };
     const res = await axios.patch(`${apiUrl}/${id}/increment`, newProduct);
-    getData()
+    getData();
   };
   const decrementCount = async (id) => {
     let count = 0;
@@ -58,7 +57,7 @@ function CrudSystem() {
       count: Number(count),
     };
     const res = await axios.patch(`${apiUrl}/${id}/increment`, newProduct);
-    getData()
+    getData();
   };
   useEffect(() => {
     getData();
@@ -132,20 +131,6 @@ function CrudSystem() {
     }
   };
 
-  // const deleteProduct = (index) => {
-  //   const productToDelete = products[index];
-
-  //   axios.delete(apiUrl, { data: productToDelete })
-  //     .then((response) => {
-  //       const updatedProducts = [...products];
-  //       updatedProducts.splice(index, 1);
-  //       setProducts(updatedProducts);
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //     });
-  // };
-
   const clearData = () => {
     setProductName("");
     setProductPrice("");
@@ -153,22 +138,6 @@ function CrudSystem() {
     setProductDescription("");
     setProductCount("");
   };
-
-  // const incrementCount = (index) => {
-  //   const updatedProducts = [...products];
-  //   updatedProducts[index].count++;
-  //   setProducts(updatedProducts);
-  //   localStorage.setItem("product", JSON.stringify(updatedProducts));
-  // };
-
-  // const decrementCount = (index) => {
-  //   const updatedProducts = [...products];
-  //   if (updatedProducts[index].count > 0) {
-  //     updatedProducts[index].count--;
-  //     setProducts(updatedProducts);
-  //     localStorage.setItem("product", JSON.stringify(updatedProducts));
-  //   }
-  // };
 
   return (
     <>
@@ -270,6 +239,15 @@ function CrudSystem() {
           </button>
           <button className="btn btn-secondary mt-2">Cancel</button>
 
+          <Form>
+            <InputGroup className="my-3">
+              <Form.Control
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search contacts"
+              />
+            </InputGroup>
+          </Form>
+
           <div className="searchBy">
             <select
               className="form-select w-50 mx-auto"
@@ -277,7 +255,7 @@ function CrudSystem() {
               id="selectSearch"
             >
               <option value>Choose Search By?</option>
-              <option id="searchTitle" value="1">
+              <option id="searchName" value="1">
                 Search By Title
               </option>
               <option id="searchCategory" value="2">
@@ -286,13 +264,15 @@ function CrudSystem() {
             </select>
 
             <input
-              // onkeyup="searchProdduct(this.value)"
+            //  onChange={(e) => setSearch(e.target.value)}
               type="text"
               className="w-50 form-control mx-auto"
               id="search"
               placeholder="Search Product...."
             />
           </div>
+
+          
 
           <table className="table mt-5 mb-5 text-center table-bordered">
             <thead className="bg-dark text-white">
@@ -308,47 +288,60 @@ function CrudSystem() {
               </tr>
             </thead>
             <tbody>
-              {myProducts.map((product, index) => (
-                <tr key={index}>
-                  <td className="mt-1">{index}</td>
-                  <td>{product.name}</td>
-                  <td>{product.price}</td>
-                  <td>{product.category}</td>
-                  <td>{product.description}</td>
-                  <td>
-                    <button
-                      onClick={() => deleteProduct(product._id)}
-                      className="btn btn-danger"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-warning"
-                      onClick={() => getProductById(product._id)}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="rounded-circle"
-                      onClick={() => decrementCount(product._id)}
-                    >
-                      {" "}
-                      -{" "}
-                    </button>
-                    {product.count}
-                    <button
-                      className="rounded-circle"
-                      onClick={() => icrementCount(product._id)}
-                    >
-                      +
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {myProducts
+                .filter((item) => {
+                  
+                  return search === ""
+                  
+                    ? item
+                    : item.name.toLowerCase().includes(search);
+                    console.log('===========>',item)
+                })
+               
+                .map((product, index) => (
+                  
+                  <tr key={index}>
+                    <td className="mt-1">{index}</td>
+                    <td>{product.name}</td>
+                    <td>{product.price}</td>
+                    <td>{product.category}</td>
+                    <td>{product.description}</td>
+                    <td>
+                    
+                      <button
+                        onClick={() => deleteProduct(product._id)}
+                        className="btn btn-danger"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => getProductById(product._id)}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="rounded-circle"
+                        onClick={() => decrementCount(product._id)}
+                      >
+                        {" "}
+                        -{" "}
+                      </button>
+                      {product.count}
+                      <button
+                        className="rounded-circle"
+                        onClick={() => icrementCount(product._id)}
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                
             </tbody>
             <tfoot id="tFoot"></tfoot>
           </table>
