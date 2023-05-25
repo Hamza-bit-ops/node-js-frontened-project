@@ -5,6 +5,7 @@ import axios from "axios";
 const apiUrl = "http://localhost:3001"; // Update with your server's URL
 
 function CrudSystem() {
+  const [idForEditing, setIdForEditing] = useState("")
   const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -14,17 +15,40 @@ function CrudSystem() {
   const [productTotal, setProductTotal] = useState("");
   const [myProducts,setMyProducts] = useState([]);
 
-  useEffect(() => {
+  function getData(){
     axios.get(apiUrl).then((response) => {
-      
-      
       const myData = response.data;
-      console.log("+++++++++++>",myData);
+      console.log(myData);
       setMyProducts(myData);
+});
+  }
+
+  const getProductById  = async (id) => {
+    await axios.get(apiUrl+"/"+ id).then((response) => {
+      const editingId = response.data._id
+      console.log("===========>",editingId);
+      setIdForEditing(editingId)
+      const myData = response.data;
+      setProductName(myData.name)
+      setProductPrice(myData.price)
+      setProductCount(myData.count)
+      setProductCategory(myData.category)
+      setProductDescription(myData.description)
+      console.log(myData);
+});
+    }
 
 
+    function icrementCount(){
       
-    });
+    }
+ 
+
+  
+
+  useEffect(() => {
+    getData();
+    
     // Load data from localStorage on component mount
     // const storedProducts = JSON.parse(localStorage.getItem("product"));
     // setProducts(storedProducts || []);
@@ -42,7 +66,7 @@ function CrudSystem() {
     setProductTotal(result);
   };
 
-  const addProduct = () => {
+  const addProduct = async () => {
     const newProduct = {
       name: productName.toLowerCase(),
       price: productPrice,
@@ -56,6 +80,19 @@ function CrudSystem() {
     getTotal();
     clearData();
     console.log(apiUrl, newProduct);
+    console.log(idForEditing);
+    if (idForEditing)  {
+       try {
+        const res = await axios.patch(`${apiUrl}/${idForEditing}`, newProduct);
+        console.log("==========>>", idForEditing);
+        console.log('Item successfully edited.');
+      } catch (error) {
+        console.error(error);
+        
+      }
+      return
+    }
+   
     axios
       .post(apiUrl, newProduct)
       .then((response) => {
@@ -71,12 +108,34 @@ function CrudSystem() {
       });
   };
 
-  // const deleteProduct = (index) => {
-  //   const updatedProducts = [...products];
-  //   updatedProducts.splice(index, 1);
-  //   setProducts(updatedProducts);
-  //   localStorage.setItem("product", JSON.stringify(updatedProducts));
-  // };
+  const deleteProduct  = async (id) => {
+    try {
+      console.log(id);
+      const res = await axios.delete(apiUrl+"/"+id)
+      getData();
+      console.log('Item successfully deleted.')
+    } catch (error) {
+      alert(error)
+    }
+  }
+
+ 
+  
+
+ 
+// const deleteProduct = (index) => {
+//   const productToDelete = products[index];
+
+//   axios.delete(apiUrl, { data: productToDelete })
+//     .then((response) => {
+//       const updatedProducts = [...products];
+//       updatedProducts.splice(index, 1);
+//       setProducts(updatedProducts);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//     });
+// };
 
   const clearData = () => {
     setProductName("");
@@ -191,7 +250,7 @@ function CrudSystem() {
             className="btn btn-info mt-2"
             onClick={addProduct}
           >
-            Add Product
+            {idForEditing ? 'Edit Product' : 'Add Product'}
           </button>
           <button
             id="btnDeleteAll"
@@ -249,19 +308,21 @@ function CrudSystem() {
                   <td>{product.description}</td>
                   <td>
                     <button
-                      // onClick={() => deleteProduct(index)}
+                      onClick={() => deleteProduct(product._id)}
                       className="btn btn-danger"
                     >
                       Delete
                     </button>
                   </td>
                   <td>
-                    <button className="btn btn-warning">Edit</button>
+                    <button className="btn btn-warning"
+                     onClick={() => getProductById(product._id)}
+                    >Edit</button>
                   </td>
                   <td>
                     <button
                       className="rounded-circle"
-                      // onClick={() => decrementCount(index)}
+                      // onClick={() => decrementCount(product._id)}
                     >
                       {" "}
                       -{" "}
