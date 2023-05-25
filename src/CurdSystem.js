@@ -264,15 +264,13 @@ function CrudSystem() {
             </select>
 
             <input
-            //  onChange={(e) => setSearch(e.target.value)}
+              //  onChange={(e) => setSearch(e.target.value)}
               type="text"
               className="w-50 form-control mx-auto"
               id="search"
               placeholder="Search Product...."
             />
           </div>
-
-          
 
           <table className="table mt-5 mb-5 text-center table-bordered">
             <thead className="bg-dark text-white">
@@ -282,6 +280,7 @@ function CrudSystem() {
                 <th>Price</th>
                 <th>Category</th>
                 <th>Description</th>
+                <th>Product Total</th>
                 <th>Delete</th>
                 <th>Edit</th>
                 <th>Count</th>
@@ -290,24 +289,20 @@ function CrudSystem() {
             <tbody>
               {myProducts
                 .filter((item) => {
-                  
                   return search === ""
-                  
                     ? item
                     : item.name.toLowerCase().includes(search);
-                    console.log('===========>',item)
                 })
-               
+
                 .map((product, index) => (
-                  
                   <tr key={index}>
                     <td className="mt-1">{index}</td>
                     <td>{product.name}</td>
                     <td>{product.price}</td>
                     <td>{product.category}</td>
                     <td>{product.description}</td>
+                    <td>{product.total}</td>
                     <td>
-                    
                       <button
                         onClick={() => deleteProduct(product._id)}
                         className="btn btn-danger"
@@ -323,25 +318,28 @@ function CrudSystem() {
                         Edit
                       </button>
                     </td>
-                    <td>
-                      <button
-                        className="rounded-circle"
-                        onClick={() => decrementCount(product._id)}
-                      >
-                        {" "}
-                        -{" "}
-                      </button>
-                      {product.count}
-                      <button
-                        className="rounded-circle"
-                        onClick={() => icrementCount(product._id)}
-                      >
-                        +
-                      </button>
-                    </td>
+                    <div className="row" style={{ display: "flex", justifyContent: "space-between",}}>
+                      <td>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => decrementCount(product._id)}
+                        >
+                          {" "}
+                          -{" "}
+                        </button>
+                        {product.count}
+                        
+                        <button 
+                          className="btn btn-primary"
+                          onClick={() => icrementCount(product._id)}
+                        >
+                          +
+                        </button>
+                      
+                      </td>
+                    </div>
                   </tr>
                 ))}
-                
             </tbody>
             <tfoot id="tFoot"></tfoot>
           </table>
